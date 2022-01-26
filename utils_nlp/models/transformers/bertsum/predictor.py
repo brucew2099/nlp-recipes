@@ -28,7 +28,7 @@ def build_predictor(
 ):
     scorer = GNMTGlobalScorer(alpha, length_penalty="wu")
 
-    translator = Translator(
+    return Translator(
         beam_size,
         min_length,
         max_length,
@@ -38,7 +38,6 @@ def build_predictor(
         global_scorer=scorer,
         logger=logger,
     )
-    return translator
 
 
 def tile(x, count, dim=0):

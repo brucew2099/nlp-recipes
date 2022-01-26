@@ -127,7 +127,7 @@ class RelatednessPytorch(object):
         with torch.no_grad():
             for i in range(0, len(devX), self.batch_size):
                 Xbatch = devX[i:i + self.batch_size]
-                if len(probas) == 0:
+                if not probas:
                     probas = self.model(Xbatch).data.cpu().numpy()
                 else:
                     probas = np.concatenate((probas, self.model(Xbatch).data.cpu().numpy()), axis=0)

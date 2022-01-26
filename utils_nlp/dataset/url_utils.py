@@ -122,11 +122,7 @@ def extract_zip(file_path, dest_path="."):
 @contextmanager
 def download_path(path):
     tmp_dir = TemporaryDirectory()
-    if path is None:
-        path = tmp_dir.name
-    else:
-        path = os.path.realpath(path)
-
+    path = tmp_dir.name if path is None else os.path.realpath(path)
     try:
         yield path
     finally:

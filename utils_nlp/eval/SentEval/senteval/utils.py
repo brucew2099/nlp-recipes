@@ -53,9 +53,9 @@ def get_optimizer(s):
         - "sgd,lr=0.01"
         - "adagrad,lr=0.1,lr_decay=0.05"
     """
+    optim_params = {}
     if "," in s:
         method = s[:s.find(',')]
-        optim_params = {}
         for x in s[s.find(',') + 1:].split(','):
             split = x.split('=')
             assert len(split) == 2
@@ -63,8 +63,6 @@ def get_optimizer(s):
             optim_params[split[0]] = float(split[1])
     else:
         method = s
-        optim_params = {}
-
     if method == 'adadelta':
         optim_fn = optim.Adadelta
     elif method == 'adagrad':
@@ -88,7 +86,7 @@ def get_optimizer(s):
     # check that we give good parameters to the optimizer
     expected_args = inspect.getfullargspec(optim_fn.__init__)[0]
     assert expected_args[:2] == ['self', 'params']
-    if not all(k in expected_args[2:] for k in optim_params.keys()):
+    if any(k not in expected_args[2:] for k in optim_params):
         raise Exception('Unexpected parameters: expected "%s", got "%s"' % (
             str(expected_args[2:]), str(optim_params.keys())))
 

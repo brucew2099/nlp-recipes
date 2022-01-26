@@ -31,8 +31,7 @@ def load_pandas_df(data_path, file_split=DEFAULT_FILE_SPLIT):
         pd.DataFrame: STS Benchmark dataset
     """
     file_name = "sts-{}.csv".format(file_split)
-    df = _maybe_download_and_extract(file_name, data_path)
-    return df
+    return _maybe_download_and_extract(file_name, data_path)
 
 
 def _maybe_download_and_extract(sts_file, base_data_path):
@@ -40,8 +39,7 @@ def _maybe_download_and_extract(sts_file, base_data_path):
     if not os.path.exists(raw_data_path):
         os.makedirs(raw_data_path)
     sts_path = _download_sts(raw_data_path)
-    df = _load_sts(os.path.join(sts_path, sts_file))
-    return df
+    return _load_sts(os.path.join(sts_path, sts_file))
 
 
 def _download_sts(dirpath):
@@ -103,7 +101,7 @@ def _load_sts(src_file_path):
                 ]
             )
 
-        sdf = pd.DataFrame(
+        return pd.DataFrame(
             sent_pairs,
             columns=[
                 "column_0",
@@ -115,7 +113,6 @@ def _load_sts(src_file_path):
                 "column_6",
             ],
         )
-        return sdf
 
 
 def clean_sts(df):

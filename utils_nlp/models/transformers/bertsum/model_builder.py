@@ -118,10 +118,9 @@ def build_optim_dec(
 
 def get_generator(vocab_size, dec_hidden_size):
     gen_func = nn.LogSoftmax(dim=-1)
-    generator = nn.Sequential(nn.Linear(dec_hidden_size, vocab_size), gen_func)
     # generator.to(device)
 
-    return generator
+    return nn.Sequential(nn.Linear(dec_hidden_size, vocab_size), gen_func)
 
 class Transformer(nn.Module):
     def __init__(self, temp_dir, model_class, pretrained_model_name, pretrained_config):
@@ -138,11 +137,7 @@ class Transformer(nn.Module):
             outputs = self.model(x, attention_mask =mask)
         else:
             outputs = self.model(x, token_type_ids=segs, attention_mask =mask)
-        #print(outputs)
-        #print(len(outputs))
-        top_vec = outputs[0] 
-        
-        return top_vec
+        return outputs[0]
 
 class BertSumExt(nn.Module):
     def __init__(self, encoder, args, model_class, pretrained_model_name, max_pos=512, pretrained_config = None, temp_dir="./"):
@@ -223,8 +218,7 @@ class Bert(nn.Module):
             self.eval()
             with torch.no_grad():
                 outputs = self.model(x, attention_mask=mask)
-        top_vec = outputs[0]
-        return top_vec
+        return outputs[0]
 
 
 class AbsSummarizer(nn.Module):

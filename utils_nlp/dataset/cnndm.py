@@ -291,24 +291,23 @@ def CNNDMSummarizationDatasetOrg(
             top_n=top_n,
         )
 
-    if return_dev_data:
-        if return_iterable:
-            dev_dataset = IterableSummarizationDataset(
-                source_file=dev_source_file,
-                target_file=dev_target_file,
-                source_preprocessing=source_preprocessing,
-                target_preprocessing=target_preprocessing,
-                top_n=top_n,
-            )
-        else:
-            dev_dataset = SummarizationDataset(
-                source_file=dev_source_file,
-                target_file=dev_target_file,
-                source_preprocessing=source_preprocessing,
-                target_preprocessing=target_preprocessing,
-                top_n=top_n,
-            )
-
-        return train_dataset, test_dataset, dev_dataset
-    else:
+    if not return_dev_data:
         return train_dataset, test_dataset
+    if return_iterable:
+        dev_dataset = IterableSummarizationDataset(
+            source_file=dev_source_file,
+            target_file=dev_target_file,
+            source_preprocessing=source_preprocessing,
+            target_preprocessing=target_preprocessing,
+            top_n=top_n,
+        )
+    else:
+        dev_dataset = SummarizationDataset(
+            source_file=dev_source_file,
+            target_file=dev_target_file,
+            source_preprocessing=source_preprocessing,
+            target_preprocessing=target_preprocessing,
+            top_n=top_n,
+        )
+
+    return train_dataset, test_dataset, dev_dataset

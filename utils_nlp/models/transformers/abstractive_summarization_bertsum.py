@@ -48,9 +48,8 @@ def fit_to_block_size(sequence, block_size, pad_token_id):
     """
     if len(sequence) > block_size:
         return sequence[:block_size]
-    else:
-        sequence.extend([pad_token_id] * (block_size - len(sequence)))
-        return sequence
+    sequence.extend([pad_token_id] * (block_size - len(sequence)))
+    return sequence
 
 
 def build_mask(sequence, pad_token_id):
@@ -192,25 +191,24 @@ class BertSumAbsProcessor:
             only returned when train_mode is True.
         """
 
-        if model_name.split("-")[0] in ["bert"]:
-            if train_mode:
-                # labels must be the last
-
-                return {
-                    "src": batch.src,
-                    "segs": batch.segs,
-                    "mask_src": batch.mask_src,
-                    "tgt": batch.tgt,
-                    "tgt_num_tokens": batch.tgt_num_tokens,
-                }
-            else:
-                return {
-                    "src": batch.src,
-                    "segs": batch.segs,
-                    "mask_src": batch.mask_src,
-                }
-        else:
+        if model_name.split("-")[0] not in ["bert"]:
             raise ValueError("Model not supported: {}".format(model_name))
+        if train_mode:
+            # labels must be the last
+
+            return {
+                "src": batch.src,
+                "segs": batch.segs,
+                "mask_src": batch.mask_src,
+                "tgt": batch.tgt,
+                "tgt_num_tokens": batch.tgt_num_tokens,
+            }
+        else:
+            return {
+                "src": batch.src,
+                "segs": batch.segs,
+                "mask_src": batch.mask_src,
+            }
 
     def collate(self, data, block_size, device, train_mode=True):
         """ Collate formats the data passed to the data loader.
@@ -230,8 +228,8 @@ class BertSumAbsProcessor:
                 also contains the target ids and the number of tokens
                 in the target and target text.
         """
-        data = [x for x in data if not len(x["src"]) == 0]  # remove empty_files
-        if len(data) == 0:
+        data = [x for x in data if len(x["src"]) != 0]
+        if not data:
             return None
         stories = [" ".join(d["src"]) for d in data]
         if train_mode is True and "tgt" in data[0]:
@@ -279,7 +277,7 @@ class BertSumAbsProcessor:
                     "tgt_str",
                 ],
             )
-            batch = Batch(
+            return Batch(
                 src=encoded_stories.to(device),
                 segs=encoder_token_type_ids.to(device),
                 mask_src=encoder_mask.to(device),
@@ -290,13 +288,11 @@ class BertSumAbsProcessor:
             )
         else:
             Batch = namedtuple("Batch", ["src", "segs", "mask_src"])
-            batch = Batch(
+            return Batch(
                 src=encoded_stories.to(device),
                 segs=encoder_token_type_ids.to(device),
                 mask_src=encoder_mask.to(device),
             )
-
-        return batch
 
     def preprocess(self, story_lines, summary_lines=None):
         """preprocess multiple data points
@@ -749,7 +745,7 @@ class BertSumAbs(Transformer):
             into nicely formatted summaries.
             """
             raw_summary = translation
-            summary = (
+            return (
                 raw_summary.replace("[unused0]", "")
                 .replace("[unused3]", "")
                 .replace("[CLS]", "")
@@ -761,8 +757,6 @@ class BertSumAbs(Transformer):
                 .replace("[unused2]", "")
                 .strip()
             )
-
-            return summary
 
         def generate_summary_from_tokenid(preds, pred_score):
             batch_size = preds.size()[0]  # batch.batch_size

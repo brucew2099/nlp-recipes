@@ -124,7 +124,7 @@ class Tokenizer:
             max_len = BERT_MAX_LEN
 
         if isinstance(tokens[0][0], str):
-            tokens = [x[0 : max_len - 2] + ["[SEP]"] for x in tokens]
+            tokens = [x[:max_len - 2] + ["[SEP]"] for x in tokens]
             token_type_ids = None
         else:
             # get tokens for each sentence [[t00, t01, ...] [t10, t11,... ]]
@@ -181,7 +181,7 @@ class Tokenizer:
             max_len = BERT_MAX_LEN
 
         if isinstance(tokens[0][0], str):
-            tokens = [x[0 : max_len - 2] + ["[SEP]"] for x in tokens]
+            tokens = [x[:max_len - 2] + ["[SEP]"] for x in tokens]
             token_type_ids = None
         else:
             # get tokens for each sentence [[t00, t01, ...] [t10, t11,... ]]
@@ -410,9 +410,7 @@ def create_data_loader(
             "Invalid sample_method value, accepted values are: " "random and sequential."
         )
 
-    dataloader = DataLoader(tensor_data, sampler=sampler, batch_size=batch_size)
-
-    return dataloader
+    return DataLoader(tensor_data, sampler=sampler, batch_size=batch_size)
 
 
 class TextDataset(Dataset):
@@ -458,13 +456,11 @@ class TextDataset(Dataset):
         tokens = self._cast(row[0][1:-1].split(","))
         mask = self._cast(row[1][1:-1].split(","))
 
-        data = {
+        return {
             "token_ids": torch.tensor(tokens, dtype=torch.long),
             "input_mask": torch.tensor(mask, dtype=torch.long),
             "labels": torch.tensor(int(row[2]), dtype=torch.long),
         }
-
-        return data
 
 
 def get_dataset_multiple_files(files):

@@ -44,7 +44,7 @@ class PyTorchClassifier(object):
         else:
             permutation = np.random.permutation(len(X))
             trainidx = permutation[int(validation_split * len(X)):]
-            devidx = permutation[0:int(validation_split * len(X))]
+            devidx = permutation[:int(validation_split * len(X))]
             trainX, trainy = X[trainidx], y[trainidx]
             devX, devy = X[devidx], y[devidx]
 
@@ -148,10 +148,7 @@ class PyTorchClassifier(object):
             for i in range(0, len(devX), self.batch_size):
                 Xbatch = devX[i:i + self.batch_size]
                 vals = F.softmax(self.model(Xbatch).data.cpu().numpy())
-                if not probas:
-                    probas = vals
-                else:
-                    probas = np.concatenate(probas, vals, axis=0)
+                probas = vals if not probas else np.concatenate(probas, vals, axis=0)
         return probas
 
 

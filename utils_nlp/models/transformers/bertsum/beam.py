@@ -208,6 +208,4 @@ class GNMTGlobalScorer(object):
         """
         Rescores a prediction based on penalty functions
         """
-        normalized_probs = self.length_penalty(beam, logprobs, self.alpha)
-
-        return normalized_probs
+        return self.length_penalty(beam, logprobs, self.alpha)

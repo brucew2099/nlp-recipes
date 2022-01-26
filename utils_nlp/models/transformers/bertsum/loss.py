@@ -19,14 +19,13 @@ import torch.nn.functional as F
 
 
 def abs_loss(generator, symbols, vocab_size, train=True, label_smoothing=0.0):
-    compute = NMTLossCompute(
+    # compute.to(device)
+    return NMTLossCompute(
         generator,
         symbols,
         vocab_size,
         label_smoothing=label_smoothing if train else 0.0,
     )
-    # compute.to(device)
-    return compute
 
 
 class LossComputeBase(nn.Module):
@@ -272,11 +271,9 @@ def shards(state, shard_size, eval_only=False):
         # First, unzip the dictionary into a sequence of keys and a
         # sequence of tensor-like sequences.
         keys, values = zip(
-            *(
-                (k, [v_chunk for v_chunk in v_split])
-                for k, (_, v_split) in non_none.items()
-            )
+            *((k, list(v_split)) for k, (_, v_split) in non_none.items())
         )
+
 
         # Now, yield a dictionary for each shard. The keys are always
         # the same. values is a sequence of length #keys where each

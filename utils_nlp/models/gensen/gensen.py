@@ -293,14 +293,12 @@ class GenSenSingle(nn.Module):
         model_train = []
         pretrain_train = []
 
-        for word in pretrain_word2id:
+        for word, value in pretrain_word2id.items():
             if word in self.word2id:
                 model_train.append(
                     self.model_embedding_matrix[self.word2id[word]]
                 )
-                pretrain_train.append(
-                    pretrained_embedding_matrix[pretrain_word2id[word]]
-                )
+                pretrain_train.append(pretrained_embedding_matrix[value])
 
         logging.info("Training vocab expansion on model")
         lreg = LinearRegression()
@@ -321,7 +319,7 @@ class GenSenSingle(nn.Module):
         self.task_id2word = {0: "<s>", 1: "<pad>", 2: "</s>", 3: "<unk>"}
 
         ctr = 4
-        for idx, word in enumerate(task_vocab):
+        for word in task_vocab:
             if word not in self.task_word2id:
                 self.task_word2id[word] = ctr
                 self.task_id2word[ctr] = word

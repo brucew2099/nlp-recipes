@@ -73,23 +73,26 @@ class MultitaskModel(nn.Module):
         self.trg_embedding = nn.ModuleList(
             [
                 nn.Embedding(trg_vocab_size, trg_emb_dim, self.pad_token_trg)
-                for task in range(self.num_tasks)
+                for _ in range(self.num_tasks)
             ]
         )
+
 
         self.decoders = nn.ModuleList(
             [
                 self.decoder(trg_emb_dim, trg_hidden_dim, dropout=self.dropout)
-                for task in range(self.num_tasks)
+                for _ in range(self.num_tasks)
             ]
         )
+
 
         self.decoder2vocab = nn.ModuleList(
             [
                 nn.Linear(trg_hidden_dim, trg_vocab_size)
-                for task in range(self.num_tasks)
+                for _ in range(self.num_tasks)
             ]
         )
+
 
         self.nli_decoder = nn.Sequential(
             nn.Dropout(0.3),
@@ -257,10 +260,7 @@ class MultitaskModel(nn.Module):
                 else:
                     return decoder_logit, decoder_logit_2
 
-            if return_hidden:
-                return decoder_logit, h_t
-            else:
-                return decoder_logit
+            return (decoder_logit, h_t) if return_hidden else decoder_logit
 
     def decode(self, logits):
         """Return probability distribution over words."""

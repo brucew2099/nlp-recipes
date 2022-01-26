@@ -88,7 +88,7 @@ def _get_model_type(model_name):
 def detokenize(tk_list):
     r_list = []
     for tk in tk_list:
-        if tk.startswith("##") and len(r_list) > 0:
+        if tk.startswith("##") and r_list:
             r_list[-1] = r_list[-1] + tk[2:]
         else:
             r_list.append(tk)
@@ -149,14 +149,13 @@ class S2SAbsSumProcessor:
         used by Transformer.fine_tune.
         """
         batch = tuple(t.to(device) for t in batch)
-        inputs = {
+        return {
             "source_ids": batch[0],
             "target_ids": batch[1],
             "pseudo_ids": batch[2],
             "num_source_tokens": batch[3],
             "num_target_tokens": batch[4],
         }
-        return inputs
 
     @staticmethod
     def create_s2s_dataset(
@@ -219,9 +218,8 @@ class S2SAbsSumProcessor:
             cached_features_file = os.path.join(output_dir, cached_features_file_name)
             if os.path.exists(cached_features_file):
                 os.remove(cached_features_file)
-        else:
-            if os.path.exists(cached_features_file):
-                print("use cached feature file {}".format(cached_features_file))
+        elif os.path.exists(cached_features_file):
+            print("use cached feature file {}".format(cached_features_file))
 
         features = load_and_cache_examples(
             input_examples=examples,
@@ -275,7 +273,7 @@ class S2SAbsSumProcessor:
             for source in sum_ds:
                 examples.append({"src": source})
 
-        s2s_dataset = S2SAbsSumProcessor.create_s2s_dataset(
+        return S2SAbsSumProcessor.create_s2s_dataset(
             examples=examples,
             train_mode=train_mode,
             tokenizer=self.tokenizer,
@@ -284,8 +282,6 @@ class S2SAbsSumProcessor:
             cached_features_file=cached_features_file,
             top_n=top_n,
         )
-
-        return s2s_dataset
 
     def s2s_dataset_from_sum_ds(
         self, sum_ds, train_mode, cached_features_file=None, local_rank=-1, top_n=-1
@@ -312,11 +308,8 @@ class S2SAbsSumProcessor:
         Returns:
             S2SAbsSumDataset
         """
-        examples = []
-        for item in sum_ds:
-            examples.append(item)
-
-        s2s_dataset = S2SAbsSumProcessor.create_s2s_dataset(
+        examples = list(sum_ds)
+        return S2SAbsSumProcessor.create_s2s_dataset(
             examples=examples,
             train_mode=train_mode,
             tokenizer=self.tokenizer,
@@ -325,8 +318,6 @@ class S2SAbsSumProcessor:
             cached_features_file=cached_features_file,
             top_n=top_n,
         )
-
-        return s2s_dataset
 
     def s2s_dataset_from_json_or_file(
         self, input_data, train_mode, cached_features_file=None, local_rank=-1, top_n=-1
@@ -363,7 +354,7 @@ class S2SAbsSumProcessor:
             S2SAbsSumDataset
         """
 
-        s2s_dataset = S2SAbsSumProcessor.create_s2s_dataset(
+        return S2SAbsSumProcessor.create_s2s_dataset(
             examples=input_data,
             train_mode=train_mode,
             tokenizer=self.tokenizer,
@@ -372,8 +363,6 @@ class S2SAbsSumProcessor:
             cached_features_file=cached_features_file,
             top_n=top_n,
         )
-
-        return s2s_dataset
 
 
 class S2SConfig:
@@ -508,16 +497,15 @@ class S2SAbstractiveSummarizer(Transformer):
             to_lower = True
 
         # self._bert_model_name is needed for BertForSeq2SeqDecoder
-        if self._model_type != "bert":
-            if self._model_type == "roberta":
-                self._bert_model_name = (
-                    self._model_name.replace("roberta", "bert") + "-cased"
-                )
-            else:
-                self._bert_model_name = "bert-" + self._model_name.split("-", 1)[-1]
-        else:
+        if self._model_type == "bert":
             self._bert_model_name = self._model_name
 
+        elif self._model_type == "roberta":
+            self._bert_model_name = (
+                self._model_name.replace("roberta", "bert") + "-cased"
+            )
+        else:
+            self._bert_model_name = "bert-" + self._model_name.split("-", 1)[-1]
         self.cache_dir = cache_dir
         self.load_model_from_dir = load_model_from_dir
         self.do_lower_case = to_lower
@@ -549,7 +537,7 @@ class S2SAbstractiveSummarizer(Transformer):
             model_config = config_class.from_pretrained(
                 self._model_name, cache_dir=cache_dir
             )
-        
+
         self.model_config = model_config
 
         # Convert regular model config to sequence to sequence config
@@ -884,7 +872,7 @@ class S2SAbstractiveSummarizer(Transformer):
         def collate_fn(input_batch):
             buf_id = [x[0] for x in input_batch]
             buf = [x[1][:max_src_length] for x in input_batch]
-            max_a_len = max([len(x) for x in buf])
+            max_a_len = max(len(x) for x in buf)
             instances = []
             for instance in [(x, max_a_len) for x in buf]:
                 for proc in bi_uni_pipeline:
@@ -1099,7 +1087,7 @@ def load_and_cache_examples(
             examples = input_examples
 
         if top_n != -1:
-            examples = examples[0:top_n]
+            examples = examples[:top_n]
 
         features = []
         if train_mode:

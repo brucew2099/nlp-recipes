@@ -43,7 +43,7 @@ class SE(object):
 
         # batcher and prepare
         self.batcher = batcher
-        self.prepare = prepare if prepare else lambda x, y: None
+        self.prepare = prepare or (lambda x, y: None)
 
         self.list_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'SST5', 'TREC', 'MRPC',
                            'SICKRelatedness', 'SICKEntailment', 'STSBenchmark',

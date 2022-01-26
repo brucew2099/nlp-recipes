@@ -16,12 +16,9 @@ def _get_ngrams(n, text):
     Returns:
       A set of n-grams
     """
-    ngram_set = set()
     text_length = len(text)
     max_index_ngram_start = text_length - n
-    for i in range(max_index_ngram_start + 1):
-        ngram_set.add(tuple(text[i:i + n]))
-    return ngram_set
+    return {tuple(text[i:i + n]) for i in range(max_index_ngram_start + 1)}
 
 
 def _get_word_ngrams(n, sentences):
@@ -49,11 +46,7 @@ def cal_rouge(evaluated_ngrams, reference_ngrams):
     else:
         precision = overlapping_count / evaluated_count
 
-    if reference_count == 0:
-        recall = 0.0
-    else:
-        recall = overlapping_count / reference_count
-
+    recall = 0.0 if reference_count == 0 else overlapping_count / reference_count
     f1_score = 2.0 * ((precision * recall) / (precision + recall + 1e-8))
     return {"f": f1_score, "p": precision, "r": recall}
 

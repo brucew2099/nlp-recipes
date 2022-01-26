@@ -61,11 +61,7 @@ def load_pandas_df(local_cache_path=".", squad_version="v1.1", file_split="train
                 qas_id = qa["id"]
                 question_text = qa["question"]
                 answer_offset = None
-                is_impossible = False
-
-                if squad_version == "v2.0":
-                    is_impossible = qa["is_impossible"]
-
+                is_impossible = qa["is_impossible"] if squad_version == "v2.0" else False
                 if file_split == "train":
                     if (len(qa["answers"]) != 1) and (not is_impossible):
                         raise ValueError(
@@ -77,15 +73,14 @@ def load_pandas_df(local_cache_path=".", squad_version="v1.1", file_split="train
                         answer_offset = answer["answer_start"]
                     else:
                         orig_answer_text = ""
+                elif not is_impossible:
+                    orig_answer_text = []
+                    answer_offset = []
+                    for answer in qa["answers"]:
+                        orig_answer_text.append(answer["text"])
+                        answer_offset.append(answer["answer_start"])
                 else:
-                    if not is_impossible:
-                        orig_answer_text = []
-                        answer_offset = []
-                        for answer in qa["answers"]:
-                            orig_answer_text.append(answer["text"])
-                            answer_offset.append(answer["answer_start"])
-                    else:
-                        orig_answer_text = ""
+                    orig_answer_text = ""
 
                 paragraph_text_list.append(paragraph_text)
                 question_text_list.append(question_text)
@@ -94,7 +89,7 @@ def load_pandas_df(local_cache_path=".", squad_version="v1.1", file_split="train
                 qa_id_list.append(qas_id)
                 is_impossible_list.append(is_impossible)
 
-    output_df = pd.DataFrame(
+    return pd.DataFrame(
         {
             "doc_text": paragraph_text_list,
             "question_text": question_text_list,
@@ -104,5 +99,3 @@ def load_pandas_df(local_cache_path=".", squad_version="v1.1", file_split="train
             "is_impossible": is_impossible_list,
         }
     )
-
-    return output_df

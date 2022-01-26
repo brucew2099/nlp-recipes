@@ -72,12 +72,20 @@ def load_pandas_df(local_cache_path=None, dataset_type="train"):
 
         fields = ["Quality", "#1 String", "#2 String"]
         file_path = os.path.join(data_directory, DATASET_DICT[dataset_type])
-        df = (
-            pd.read_csv(file_path, delimiter="\t", error_bad_lines=False, usecols=fields)
+        return (
+            pd.read_csv(
+                file_path,
+                delimiter="\t",
+                error_bad_lines=False,
+                usecols=fields,
+            )
             .dropna()
             .rename(
                 index=str,
-                columns={"Quality": "score", "#1 String": "sentence1", "#2 String": "sentence2"},
+                columns={
+                    "Quality": "score",
+                    "#1 String": "sentence1",
+                    "#2 String": "sentence2",
+                },
             )
         )
-        return df

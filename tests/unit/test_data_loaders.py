@@ -21,17 +21,10 @@ json_row_size = 18  # "{"a": 1, "b": 5}\n (18 bytes)"
 def csv_file(tmpdir):
     random.seed(0)
     f = tmpdir.mkdir("test_loaders").join("tl_data.csv")
-    f.write(
-        "\n".join(
-            [
-                "{},{}".format(
+    f.write("\n".join(["{},{}".format(
                     random.randint(0, 1),
                     random.randint(UNIF1["a"], UNIF1["b"]),
-                )
-                for x in range(UNIF1["n"])
-            ]
-        )
-    )
+                ) for _ in range(UNIF1["n"])]))
     return str(f)
 
 
@@ -62,9 +55,11 @@ def test_dask_csv_rnd_loader(csv_file):
         random_seed=0,
     )
 
-    sample = []
-    for batch in loader.get_random_batches(num_batches, batch_size):
-        sample.append(list(batch.iloc[:, 1]))
+    sample = [
+        list(batch.iloc[:, 1])
+        for batch in loader.get_random_batches(num_batches, batch_size)
+    ]
+
     sample = np.concatenate(sample)
 
     assert loader.df.npartitions == num_partitions
@@ -82,9 +77,11 @@ def test_dask_csv_seq_loader(csv_file):
         block_size=row_size * int(UNIF1["n"] / num_partitions),
     )
 
-    sample = []
-    for batch in loader.get_sequential_batches(batch_size):
-        sample.append(list(batch.iloc[:, 1]))
+    sample = [
+        list(batch.iloc[:, 1])
+        for batch in loader.get_sequential_batches(batch_size)
+    ]
+
     sample = np.concatenate(sample)
 
     assert loader.df.npartitions == num_partitions
@@ -104,9 +101,11 @@ def test_dask_json_rnd_loader(json_file):
         lines=True,
     )
 
-    sample = []
-    for batch in loader.get_random_batches(num_batches, batch_size):
-        sample.append(list(batch.iloc[:, 1]))
+    sample = [
+        list(batch.iloc[:, 1])
+        for batch in loader.get_random_batches(num_batches, batch_size)
+    ]
+
     sample = np.concatenate(sample)
 
     assert loader.df.npartitions == num_partitions
@@ -125,9 +124,11 @@ def test_dask_json_seq_loader(json_file):
         lines=True,
     )
 
-    sample = []
-    for batch in loader.get_sequential_batches(batch_size):
-        sample.append(list(batch.iloc[:, 1]))
+    sample = [
+        list(batch.iloc[:, 1])
+        for batch in loader.get_sequential_batches(batch_size)
+    ]
+
     sample = np.concatenate(sample)
 
     assert loader.df.npartitions == num_partitions

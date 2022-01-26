@@ -204,7 +204,7 @@ class TransformerDecoder(nn.Module):
             .expand(tgt_batch, tgt_len, tgt_len)
         )
 
-        if not memory_masks is None:
+        if memory_masks is not None:
             src_len = memory_masks.size(-1)
             src_pad_mask = memory_masks.expand(src_batch, tgt_len, src_len)
 
@@ -220,9 +220,8 @@ class TransformerDecoder(nn.Module):
 
         for i in range(self.num_layers):
             prev_layer_input = None
-            if state.cache is None:
-                if state.previous_input is not None:
-                    prev_layer_input = state.previous_layer_inputs[i]
+            if state.cache is None and state.previous_input is not None:
+                prev_layer_input = state.previous_layer_inputs[i]
             output, all_input = self.transformer_layers[i](
                 output,
                 src_memory_bank,
@@ -295,13 +294,14 @@ class TransformerDecoderState(DecoderState):
         return state
 
     def _init_cache(self, memory_bank, num_layers):
-        self.cache = {}
+        layer_cache = {
+            'memory_keys': None,
+            'memory_values': None,
+            'self_keys': None,
+            'self_values': None,
+        }
 
-        for l in range(num_layers):
-            layer_cache = {"memory_keys": None, "memory_values": None}
-            layer_cache["self_keys"] = None
-            layer_cache["self_values"] = None
-            self.cache["layer_{}".format(l)] = layer_cache
+        self.cache = {"layer_{}".format(l): layer_cache for l in range(num_layers)}
 
     def repeat_beam_size_times(self, beam_size):
         """ Repeat beam_size times along batch dimension. """

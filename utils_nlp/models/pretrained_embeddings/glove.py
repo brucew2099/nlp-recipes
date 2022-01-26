@@ -26,12 +26,11 @@ def _extract_glove_vectors(zip_path, dest_path="."):
         str: Returns the absolute path to the extracted folder.
     """
 
-    if os.path.exists(zip_path):
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(path=dest_path)
-    else:
+    if not os.path.exists(zip_path):
         raise Exception("Zipped file not found!")
 
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(path=dest_path)
     os.remove(zip_path)
     return dest_path
 

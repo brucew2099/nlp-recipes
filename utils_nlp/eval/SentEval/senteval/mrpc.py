@@ -56,16 +56,16 @@ class MRPCEval(object):
 
         for key in self.mrpc_data:
             logging.info('Computing embedding for {0}'.format(key))
-            # Sort to reduce padding
-            text_data = {}
             sorted_corpus = sorted(zip(self.mrpc_data[key]['X_A'],
                                        self.mrpc_data[key]['X_B'],
                                        self.mrpc_data[key]['y']),
                                    key=lambda z: (len(z[0]), len(z[1]), z[2]))
 
-            text_data['A'] = [x for (x, y, z) in sorted_corpus]
-            text_data['B'] = [y for (x, y, z) in sorted_corpus]
-            text_data['y'] = [z for (x, y, z) in sorted_corpus]
+            text_data = {
+                'A': [x for (x, y, z) in sorted_corpus],
+                'B': [y for (x, y, z) in sorted_corpus],
+                'y': [z for (x, y, z) in sorted_corpus],
+            }
 
             for txt_type in ['A', 'B']:
                 mrpc_embed[key][txt_type] = []

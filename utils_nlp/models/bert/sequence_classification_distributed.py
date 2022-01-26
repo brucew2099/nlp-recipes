@@ -65,16 +65,21 @@ class BERTSequenceClassifier:
         optimizer_grouped_parameters = [
             {
                 "params": [
-                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
+                    p
+                    for n, p in param_optimizer
+                    if all(nd not in n for nd in no_decay)
                 ],
                 "weight_decay": 0.01,
             },
             {
                 "params": [
-                    p for n, p in param_optimizer if any(nd in n for nd in no_decay)
+                    p
+                    for n, p in param_optimizer
+                    if any(nd in n for nd in no_decay)
                 ]
             },
         ]
+
         self.optimizer_params = optimizer_grouped_parameters
         self.name_parameters = self.model.named_parameters()
         self.state_dict = self.model.state_dict()
@@ -159,11 +164,9 @@ class BERTSequenceClassifier:
         else:
             sampler = torch.utils.data.RandomSampler(dataset)
 
-        data_loader = torch.utils.data.DataLoader(
+        return torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, sampler=sampler, **kwargs
         )
-
-        return data_loader
 
     def save_model(self):
         """
@@ -315,7 +318,7 @@ class BERTSequenceClassifier:
 
         preds = []
         test_labels = []
-        for i, data in enumerate(tqdm(test_loader, desc="Iteration")):
+        for data in tqdm(test_loader, desc="Iteration"):
             x_batch = data["token_ids"]
             x_batch = x_batch.cuda()
 

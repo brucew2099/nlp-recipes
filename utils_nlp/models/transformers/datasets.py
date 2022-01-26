@@ -200,10 +200,10 @@ class QADataset(Dataset):
         else:
             self.is_impossible_col = is_impossible_col
 
-        if answer_start_col is not None and answer_text_col is not None:
-            self.actual_answer_available = True
-        else:
-            self.actual_answer_available = False
+        self.actual_answer_available = (
+            answer_start_col is not None and answer_text_col is not None
+        )
+
         self.answer_start_col = answer_start_col
         self.answer_text_col = answer_text_col
 
@@ -236,8 +236,7 @@ class QADataset(Dataset):
 
 def _line_iter(file_path):
     with open(file_path, "r", encoding="utf8") as fd:
-        for line in fd:
-            yield line
+        yield from fd
 
 
 def _preprocess(sentences, preprocess_pipeline, word_tokenize=None):
@@ -327,8 +326,7 @@ class IterableSummarizationDataset(IterableDataset):
             self._target = None
 
     def __iter__(self):
-        for x in self._source:
-            yield x
+        yield from self._source
 
     def get_source(self):
         return self._source
@@ -438,17 +436,15 @@ class SummarizationDataset(Dataset):
 
     def shorten(self, top_n=None):
         if top_n is None:
-            return self
+            pass
         elif top_n <= len(self._source):
-            self._source = self._source[0:top_n]
+            self._source = self._source[:top_n]
             self._source_txt = self._source_txt[0:top_n]
 
             if self._target_txt is not None:
-                self._target = self._target[0:top_n]
-                self._target_txt = self._target_txt[0:top_n]
-            return self
-        else:
-            return self
+                self._target = self._target[:top_n]
+                self._target_txt = self._target_txt[:top_n]
+        return self
 
     def __getitem__(self, idx):
         ## tupe is more adaptive

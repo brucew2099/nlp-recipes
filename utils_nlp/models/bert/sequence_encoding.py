@@ -69,11 +69,10 @@ class BERTSentenceEncoder:
             if bert_model
             else BertModel.from_pretrained(language, cache_dir=cache_dir)
         )
-        self.tokenizer = (
-            tokenizer
-            if tokenizer
-            else Tokenizer(language, to_lower=to_lower, cache_dir=cache_dir)
+        self.tokenizer = tokenizer or Tokenizer(
+            language, to_lower=to_lower, cache_dir=cache_dir
         )
+
         self.num_gpus = num_gpus
         self.max_len = max_len
         self.layer_index = layer_index
@@ -159,7 +158,7 @@ class BERTSentenceEncoder:
 
             for b, example_index in enumerate(example_indices_tensor):
                 for (i, token) in enumerate(tokens[example_index.item()]):
-                    for (j, layer_index) in enumerate(self.layer_index):
+                    for layer_index in self.layer_index:
                         layer_output = (
                             all_encoder_layers[int(layer_index)].detach().cpu().numpy()
                         )
@@ -248,7 +247,4 @@ class BERTSentenceEncoder:
         df = self.get_hidden_states(text, batch_size)
         pooled = self.pool(df)
 
-        if as_numpy:
-            return np.array(pooled["values"].tolist())
-        else:
-            return pooled
+        return np.array(pooled["values"].tolist()) if as_numpy else pooled

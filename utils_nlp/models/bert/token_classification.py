@@ -76,27 +76,33 @@ class BERTTokenClassifier:
         optimizer_grouped_parameters = [
             {
                 "params": [
-                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay_params)
+                    p
+                    for n, p in param_optimizer
+                    if all(nd not in n for nd in no_decay_params)
                 ],
                 "weight_decay": params_weight_decay,
             },
             {
-                "params": [p for n, p in param_optimizer if any(nd in n for nd in no_decay_params)],
+                "params": [
+                    p
+                    for n, p in param_optimizer
+                    if any(nd in n for nd in no_decay_params)
+                ],
                 "weight_decay": 0.0,
             },
         ]
 
-        if warmup_proportion is None:
-            optimizer = BertAdam(optimizer_grouped_parameters, lr=learning_rate)
-        else:
-            optimizer = BertAdam(
+
+        return (
+            BertAdam(optimizer_grouped_parameters, lr=learning_rate)
+            if warmup_proportion is None
+            else BertAdam(
                 optimizer_grouped_parameters,
                 lr=learning_rate,
                 t_total=num_train_optimization_steps,
                 warmup=warmup_proportion,
             )
-
-        return optimizer
+        )
 
     def fit(
         self,
@@ -162,7 +168,7 @@ class BERTTokenClassifier:
         for _ in trange(int(num_epochs), desc="Epoch"):
             tr_loss = 0
             nb_tr_steps = 0
-            for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration", mininterval=30)):
+            for batch in tqdm(train_dataloader, desc="Iteration", mininterval=30):
                 batch = tuple(t.to(device) for t in batch)
                 b_token_ids, b_input_mask, b_label_ids = batch
 
@@ -337,10 +343,12 @@ def postprocess_token_labels(
             for t_mask, p_mask in zip(trailing_token_mask, input_mask)
         ]
 
-        labels_no_trailing_pieces = [
+        return [
             [label for label, mask in zip(label_list, mask_list) if mask]
-            for label_list, mask_list in zip(labels_org_no_padding, token_mask_no_padding)
+            for label_list, mask_list in zip(
+                labels_org_no_padding, token_mask_no_padding
+            )
         ]
-        return labels_no_trailing_pieces
+
     else:
         return labels_org_no_padding

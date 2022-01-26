@@ -54,9 +54,8 @@ class GenSenClassifier:
         assert os.path.isfile(self.pretrained_embedding_path)
 
         try:
-            f = open(self.config_file)
-            self.config = self._read_config(self.config_file)
-            f.close()
+            with open(self.config_file) as f:
+                self.config = self._read_config(self.config_file)
         except FileNotFoundError:
             raise FileNotFoundError("Provided config file does not exist!")
 
@@ -88,8 +87,7 @@ class GenSenClassifier:
             dict: The loaded json file as python object
 
         """
-        json_object = json.load(open(config_file, "r", encoding="utf-8"))
-        return json_object
+        return json.load(open(config_file, "r", encoding="utf-8"))
 
     def _create_multiseq2seq_model(self):
         """ Method that creates a GenSen model from a MultiSeq2Seq model."""

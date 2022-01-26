@@ -66,23 +66,22 @@ class TokenClassificationProcessor:
                 Labels are only returned when train_mode is True.
         """
         batch = tuple(t.to(device) for t in batch)
-        if model_name in supported_models:
-            if train_mode:
-                inputs = {
-                    "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3],
-                }
-            else:
-                inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
-
-            # distilbert doesn't support segment ids
-            if model_name.split("-")[0] not in ["distilbert"]:
-                inputs["token_type_ids"] = batch[2]
-
-            return inputs
-        else:
+        if model_name not in supported_models:
             raise ValueError("Model not supported: {}".format(model_name))
+        if train_mode:
+            inputs = {
+                "input_ids": batch[0],
+                "attention_mask": batch[1],
+                "labels": batch[3],
+            }
+        else:
+            inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
+
+        # distilbert doesn't support segment ids
+        if model_name.split("-")[0] not in ["distilbert"]:
+            inputs["token_type_ids"] = batch[2]
+
+        return inputs
 
     @staticmethod
     def create_label_map(label_lists, trailing_piece_tag="X"):
@@ -99,7 +98,7 @@ class TokenClassificationProcessor:
             dict: A dictionary object to map a label (str) to an ID (int).
         """
 
-        unique_labels = sorted(set([x for y in label_lists for x in y]))
+        unique_labels = sorted({x for y in label_lists for x in y})
         label_map = {label: i for i, label in enumerate(unique_labels)}
 
         if trailing_piece_tag not in unique_labels:
