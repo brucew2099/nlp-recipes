@@ -20,7 +20,6 @@ parser.add_argument("--fp16_opt_level", type=str, default="O2")
 args = parser.parse_args()
 
 
-QUICK_RUN = True
 OUTPUT_FILE = "./nlp_cnndm_finetuning_results.txt"
 
 # model parameters
@@ -33,7 +32,7 @@ MAX_TARGET_SEQ_LENGTH = 128
 TRAIN_PER_GPU_BATCH_SIZE = 1
 GRADIENT_ACCUMULATION_STEPS = 2
 LEARNING_RATE = 3e-5
-if QUICK_RUN:
+if QUICK_RUN := True:
     TOP_N = 100
     WARMUP_STEPS = 10
     MAX_STEPS = 100

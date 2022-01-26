@@ -12,7 +12,7 @@ def aeq(*args):
     """
     Assert all arguments have the same value
     """
-    arguments = (arg for arg in args)
+    arguments = iter(args)
     first = next(arguments)
     assert all(
         arg == first for arg in arguments
@@ -476,7 +476,7 @@ class DecoderState(object):
 
     def detach(self):
         """ Need to document this """
-        self.hidden = tuple([_.detach() for _ in self.hidden])
+        self.hidden = tuple(_.detach() for _ in self.hidden)
         self.input_feed = self.input_feed.detach()
 
     def beam_update(self, idx, positions, beam_size):

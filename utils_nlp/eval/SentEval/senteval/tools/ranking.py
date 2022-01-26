@@ -88,8 +88,7 @@ class PairwiseRankingLoss(nn.Module):
                                 min=0.0).sum()
         cost_img = torch.clamp(self.margin - anchor2 + sent_imgc,
                                min=0.0).sum()
-        loss = cost_sent + cost_img
-        return loss
+        return cost_sent + cost_img
 
 
 class ImageSentenceRankingPytorch(object):
@@ -345,7 +344,7 @@ class ImageSentenceRankingPytorch(object):
 
                 # Score
                 rank = 1e20
-                for i in range(5*index, 5*index + 5, 1):
+                for i in range(5*index, 5*index + 5):
                     tmp = np.where(inds == i)[0][0]
                     if tmp < rank:
                         rank = tmp

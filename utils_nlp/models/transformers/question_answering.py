@@ -169,7 +169,7 @@ class QAProcessor:
             inputs.update({"start_positions": batch[3], "end_positions": batch[4]})
 
         if model_type not in ["distilbert"]:
-            inputs.update({"token_type_ids": batch[2]})
+            inputs["token_type_ids"] = batch[2]
 
         if model_type in ["xlnet"]:
             if train_mode:
@@ -815,10 +815,7 @@ def postprocess_bert_answer(
     for f in features_all:
         qa_id_to_features[f["qa_id"]].append(f)
 
-    unique_id_to_result = {}
-    for r in results:
-        unique_id_to_result[r.unique_id] = r
-
+    unique_id_to_result = {r.unique_id: r for r in results}
     all_predictions = collections.OrderedDict()
     all_probs = collections.OrderedDict()
     all_nbest_json = collections.OrderedDict()
@@ -928,11 +925,9 @@ def postprocess_bert_answer(
                 if final_text in seen_predictions:
                     continue
 
-                seen_predictions[final_text] = True
             else:
                 final_text = ""
-                seen_predictions[final_text] = True
-
+            seen_predictions[final_text] = True
             nbest.append(
                 _NbestPrediction(
                     text=final_text,
@@ -967,10 +962,9 @@ def postprocess_bert_answer(
         best_non_null_entry = None
         for ie, entry in enumerate(nbest):
             total_scores.append(entry.start_logit + entry.end_logit)
-            if not best_non_null_entry:
-                if entry.text:
-                    best_non_null_entry = entry
-                    best_non_null_entry_index = ie
+            if not best_non_null_entry and entry.text:
+                best_non_null_entry = entry
+                best_non_null_entry_index = ie
 
         probs = _compute_softmax(total_scores)
 

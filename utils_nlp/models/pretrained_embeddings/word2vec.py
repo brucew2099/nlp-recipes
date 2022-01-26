@@ -93,8 +93,6 @@ def load_pretrained_vectors(
 
     """
     file_path = _maybe_download_and_extract(dir_path, file_name)
-    word2vec_vectors = KeyedVectors.load_word2vec_format(
+    return KeyedVectors.load_word2vec_format(
         file_path, binary=True, limit=limit
     )
-
-    return word2vec_vectors

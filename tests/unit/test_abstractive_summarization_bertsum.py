@@ -54,16 +54,14 @@ def test_dataset_for_bertsumabs(tmp_module):
     target = target_data()
     source_file = os.path.join(tmp_module, "source.txt")
     target_file = os.path.join(tmp_module, "target.txt")
-    f = open(source_file, "w")
-    for i in source:
-        f.write(" ".join(i))
-        f.write("\n")
-    f.close()
-    f = open(target_file, "w")
-    for i in target:
-        f.write(" ".join(i))
-        f.write("\n")
-    f.close()
+    with open(source_file, "w") as f:
+        for i in source:
+            f.write(" ".join(i))
+            f.write("\n")
+    with open(target_file, "w") as f:
+        for i in target:
+            f.write(" ".join(i))
+            f.write("\n")
     train_dataset = SummarizationDataset(
         source_file = source_file,
         target_file = target_file,

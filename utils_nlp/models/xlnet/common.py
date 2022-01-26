@@ -59,14 +59,13 @@ class Tokenizer:
         cls_token_at_end=True
         mask_padding_with_zero=True
         pad_token=0
-        
+
         list_input_ids = []
         list_input_mask = []
         list_segment_ids = []
-        
-        
-        for (ex_index, example) in enumerate(examples):
 
+
+        for example in examples:
             tokens_a = self.tokenizer.tokenize(example)
 
             if len(tokens_a) > max_seq_length - 2:
@@ -103,11 +102,10 @@ class Tokenizer:
             assert len(input_ids) == max_seq_length
             assert len(input_mask) == max_seq_length
             assert len(segment_ids) == max_seq_length
-          
+
             list_input_ids.append(input_ids)
             list_input_mask.append(input_mask)
             list_segment_ids.append(segment_ids)
-
 #             features.append({"input_ids":input_ids,"input_mask":input_mask,"segment_ids":segment_ids,"label_id":label_id})
         return (list_input_ids, list_input_mask, list_segment_ids)
 

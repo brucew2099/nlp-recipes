@@ -117,12 +117,9 @@ def get_pred(
     """
 
     def _get_ngrams(n, text):
-        ngram_set = set()
         text_length = len(text)
         max_index_ngram_start = text_length - n
-        for i in range(max_index_ngram_start + 1):
-            ngram_set.add(tuple(text[i : i + n]))
-        return ngram_set
+        return {tuple(text[i : i + n]) for i in range(max_index_ngram_start + 1)}
 
     def _block_tri(c, p):
         tri_c = _get_ngrams(3, c.split())
@@ -398,39 +395,29 @@ class ExtSumProcessor:
             Labels are only returned when train_mode is True.
         """
 
-        if model_name.split("-")[0] in ["bert", "distilbert"]:
-            if train_mode:
-                batch = batch.to(device)
-                # labels must be the last
-                return {
-                    "x": batch.src,
-                    "segs": batch.segs,
-                    "clss": batch.clss,
-                    "mask": batch.mask,
-                    "mask_cls": batch.mask_cls,
-                    "labels": batch.labels,
-                }
-            else:
-                batch = batch.to(device)
-                return {
-                    "x": batch.src,
-                    "segs": batch.segs,
-                    "clss": batch.clss,
-                    "mask": batch.mask,
-                    "mask_cls": batch.mask_cls,
-                    # "labels": batch.labels,
-                }
-                """
-                return {
-                    "x": batch.src.to(device),
-                    "segs": batch.segs.to(device),
-                    "clss": batch.clss.to(device),
-                    "mask": batch.mask.to(device),
-                    "mask_cls": batch.mask_cls.to(device),
-                }
-                """
-        else:
+        if model_name.split("-")[0] not in ["bert", "distilbert"]:
             raise ValueError("Model not supported: {}".format(model_name))
+        if train_mode:
+            batch = batch.to(device)
+            # labels must be the last
+            return {
+                "x": batch.src,
+                "segs": batch.segs,
+                "clss": batch.clss,
+                "mask": batch.mask,
+                "mask_cls": batch.mask_cls,
+                "labels": batch.labels,
+            }
+        else:
+            batch = batch.to(device)
+            return {
+                "x": batch.src,
+                "segs": batch.segs,
+                "clss": batch.clss,
+                "mask": batch.mask,
+                "mask_cls": batch.mask_cls,
+                # "labels": batch.labels,
+            }
 
     def preprocess(self, input_data_list, oracle_mode="greedy", selections=3):
         """ Preprocess multiple data points.
@@ -467,22 +454,21 @@ class ExtSumProcessor:
 
         if len(data) == 0:
             return None
+        if train_mode is True and "tgt" in data[0] and "oracle_ids" in data[0]:
+            encoded_text = [self.encode_single(d, block_size) for d in data]
+            batch = Batch(list(filter(None, encoded_text)), True)
         else:
-            if train_mode is True and "tgt" in data[0] and "oracle_ids" in data[0]:
-                encoded_text = [self.encode_single(d, block_size) for d in data]
-                batch = Batch(list(filter(None, encoded_text)), True)
-            else:
-                encoded_text = [
-                    self.encode_single(d, block_size, train_mode) for d in data
-                ]
-                # src, labels, segs, clss, src_txt, tgt_txt =  zip(*encoded_text)
-                # new_data = [list(i) for i in list(zip(*encoded_text))]
-                # batch =  Batch(new_data)
-                filtered_list = list(filter(None, encoded_text))
-                # if len(filtered_list) != len(data):
-                #    raise ValueError("no test data shouldn't be skipped")
-                batch = Batch(filtered_list)
-            return batch.to(device)
+            encoded_text = [
+                self.encode_single(d, block_size, train_mode) for d in data
+            ]
+            # src, labels, segs, clss, src_txt, tgt_txt =  zip(*encoded_text)
+            # new_data = [list(i) for i in list(zip(*encoded_text))]
+            # batch =  Batch(new_data)
+            filtered_list = list(filter(None, encoded_text))
+            # if len(filtered_list) != len(data):
+            #    raise ValueError("no test data shouldn't be skipped")
+            batch = Batch(filtered_list)
+        return batch.to(device)
 
     def encode_single(self, d, block_size, train_mode=True):
         """ Enocde a single sample.
@@ -543,10 +529,7 @@ class ExtSumProcessor:
         segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
         segments_ids = []
         for i, s in enumerate(segs):
-            if i % 2 == 0:
-                segments_ids += s * [0]
-            else:
-                segments_ids += s * [1]
+            segments_ids += s * [0] if i % 2 == 0 else s * [1]
         cls_ids = [i for i, t in enumerate(src_subtoken_idxs) if t == self.cls_vid]
         if labels:
             labels = labels[: len(cls_ids)]
@@ -828,10 +811,7 @@ class ExtractiveSummarizer(Transformer):
             if dict_list is None or len(dict_list) <= 0:
                 return None
             tuple_batch = [list(d.values()) for d in dict_list]
-            # generate mask and mask_cls, and only select tensors for the model input
-            # the labels was never used in prediction, set is_labeled as False
-            batch = Batch(tuple_batch, is_labeled=False)
-            return batch
+            return Batch(tuple_batch, is_labeled=False)
 
         def collate(data):
             return self.processor.collate(
@@ -898,7 +878,7 @@ class ExtractiveSummarizer(Transformer):
             1darray: numpy array of predicted sentence scores.
         """
 
-        preds = list(
+        return list(
             super().predict(
                 eval_dataloader=test_dataloader,
                 get_inputs=ExtSumProcessor.get_inputs,
@@ -907,7 +887,6 @@ class ExtractiveSummarizer(Transformer):
                 verbose=verbose,
             )
         )
-        return preds
 
     def save_model(self, full_name=None):
         """

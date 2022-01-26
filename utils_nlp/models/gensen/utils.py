@@ -142,12 +142,14 @@ class BufferedDataIterator(DataIterator):
         # Initialize dictionaries that contain sentences & word mapping dicts
         self.src = [
             {"data": [], "word2id": None, "id2word": None}
-            for i in range(len(self.fname_src))
+            for _ in range(len(self.fname_src))
         ]
+
         self.trg = [
             {"data": [], "word2id": None, "id2word": None}
-            for i in range(len(self.fname_trg))
+            for _ in range(len(self.fname_trg))
         ]
+
         self.build_vocab()
 
         """Reset file pointers to the start after reading the file to
@@ -256,10 +258,7 @@ class BufferedDataIterator(DataIterator):
                     fname, self.trg_vocab_size, self.lowercase
                 )
                 corpus["word2id"], corpus["id2word"] = word2id, id2word
-                trg_vocab_dump[self.tasknames[idx]] = {}
-                trg_vocab_dump[self.tasknames[idx]]["word2id"] = word2id
-                trg_vocab_dump[self.tasknames[idx]]["id2word"] = id2word
-
+                trg_vocab_dump[self.tasknames[idx]] = {'word2id': word2id, 'id2word': id2word}
             pickle.dump(
                 trg_vocab_dump,
                 open(os.path.join(self.save_dir, "trg_vocab.pkl"), "wb"),

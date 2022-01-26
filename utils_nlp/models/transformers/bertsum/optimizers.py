@@ -223,9 +223,11 @@ class Optimizer(object):
                 self._step >= self.start_decay_steps
             ):
                 self.start_decay = True
-            if self.start_decay:
-                if (self._step - self.start_decay_steps) % self.decay_steps == 0:
-                    self.learning_rate = self.learning_rate * self.lr_decay
+            if (
+                self.start_decay
+                and (self._step - self.start_decay_steps) % self.decay_steps == 0
+            ):
+                self.learning_rate = self.learning_rate * self.lr_decay
 
         if self.method != "sparseadam":
             self.optimizer.param_groups[0]["lr"] = self.learning_rate

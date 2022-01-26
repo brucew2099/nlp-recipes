@@ -44,7 +44,7 @@ class DaskCSVLoader:
             num_batches (int): Number of batches to generate.
             batch_size (int]): Batch size.
         """
-        for i in range(num_batches):
+        for _ in range(num_batches):
             rnd_part_idx = random.randint(0, self.df.npartitions - 1)
             sample_part = self.df.partitions[rnd_part_idx].compute()
             if sample_part.shape[0] > batch_size:
@@ -100,7 +100,7 @@ class DaskJSONLoader:
             num_batches (int): Number of batches to generate.
             batch_size (int]): Batch size.
         """
-        for i in range(num_batches):
+        for _ in range(num_batches):
             rnd_part_idx = random.randint(0, self.df.npartitions - 1)
             sample_part = self.df.partitions[rnd_part_idx].compute()
             if sample_part.shape[0] > batch_size:

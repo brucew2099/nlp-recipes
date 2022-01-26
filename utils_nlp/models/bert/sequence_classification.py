@@ -125,17 +125,22 @@ class BERTSequenceClassifier:
         optimizer_grouped_parameters = [
             {
                 "params": [
-                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
+                    p
+                    for n, p in param_optimizer
+                    if all(nd not in n for nd in no_decay)
                 ],
                 "weight_decay": 0.01,
             },
             {
                 "params": [
-                    p for n, p in param_optimizer if any(nd in n for nd in no_decay)
+                    p
+                    for n, p in param_optimizer
+                    if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
             },
         ]
+
 
         num_batches = len(train_dataloader)
         num_train_optimization_steps = num_batches * num_epochs
@@ -181,18 +186,17 @@ class BERTSequenceClassifier:
 
                 loss.backward()
                 opt.step()
-                if verbose:
-                    if i % ((num_batches // 10) + 1) == 0:
-                        print(
-                            "epoch:{}/{}; batch:{}->{}/{}; avg loss:{:.6f}".format(
-                                epoch + 1,
-                                num_epochs,
-                                i + 1,
-                                min(i + 1 + num_batches // 10, num_batches),
-                                num_batches,
-                                training_loss / (i + 1),
-                            )
+                if verbose and i % ((num_batches // 10) + 1) == 0:
+                    print(
+                        "epoch:{}/{}; batch:{}->{}/{}; avg loss:{:.6f}".format(
+                            epoch + 1,
+                            num_epochs,
+                            i + 1,
+                            min(i + 1 + num_batches // 10, num_batches),
+                            num_batches,
+                            training_loss / (i + 1),
                         )
+                    )
         # empty cache
         del [x_batch, y_batch, mask_batch, token_type_ids_batch]
         torch.cuda.empty_cache()
@@ -250,7 +254,7 @@ class BERTSequenceClassifier:
         )
 
         preds = []
-        for i, batch in enumerate(tqdm(test_dataloader, desc="Iteration")):
+        for batch in tqdm(test_dataloader, desc="Iteration"):
             if token_type_ids:
                 x_batch, mask_batch, token_type_ids_batch = tuple(
                     t.to(device) for t in batch

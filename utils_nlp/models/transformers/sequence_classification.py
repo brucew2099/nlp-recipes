@@ -64,23 +64,22 @@ class Processor:
                 Labels are only returned when train_mode is True.
         """
         batch = tuple(t.to(device) for t in batch)
-        if model_name in supported_models:
-            if train_mode:
-                inputs = {
-                    "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3],
-                }
-            else:
-                inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
-
-            # distilbert, bart don't support segment ids
-            if model_name.split("-")[0] not in ["distilbert", "bart"]:
-                inputs["token_type_ids"] = batch[2]
-
-            return inputs
-        else:
+        if model_name not in supported_models:
             raise ValueError("Model not supported: {}".format(model_name))
+        if train_mode:
+            inputs = {
+                "input_ids": batch[0],
+                "attention_mask": batch[1],
+                "labels": batch[3],
+            }
+        else:
+            inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
+
+        # distilbert, bart don't support segment ids
+        if model_name.split("-")[0] not in ["distilbert", "bart"]:
+            inputs["token_type_ids"] = batch[2]
+
+        return inputs
 
     @staticmethod
     def text_transform(text, tokenizer, max_len=MAX_SEQ_LEN):
@@ -100,7 +99,7 @@ class Processor:
             print("setting max_len to max allowed seq length: {}".format(MAX_SEQ_LEN))
             max_len = MAX_SEQ_LEN
         # truncate and add CLS & SEP markers
-        tokens = tokenizer.tokenize(text)[0 : max_len - 2]
+        tokens = tokenizer.tokenize(text)[:max_len - 2]
         tokens = [tokenizer.cls_token] + tokens + [tokenizer.sep_token]
 
         # get input ids

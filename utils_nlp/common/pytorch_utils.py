@@ -78,25 +78,23 @@ def parallelize_model(model, device, num_gpus=None, gpu_ids=None, local_rank=-1)
             output_device=local_rank,
             find_unused_parameters=True,
         )
-    else:
-        if device.type == "cuda":
-            if num_gpus is not None:
-                if num_gpus < 1:
-                    raise ValueError("num_gpus must be at least 1 or None")
-            num_cuda_devices = torch.cuda.device_count()
-            if num_cuda_devices < 1:
-                raise Exception("CUDA devices are not available.")
-            if gpu_ids is None:
-                num_gpus = (
-                    num_cuda_devices
-                    if num_gpus is None
-                    else min(num_gpus, num_cuda_devices)
-                )
-                gpu_ids = list(range(num_gpus))
-            else:
-                gpu_ids = list(set(list(range(num_cuda_devices))).intersection(gpu_ids))
-            if len(gpu_ids) > 0:
-                model = torch.nn.DataParallel(model_module, device_ids=gpu_ids)
+    elif device.type == "cuda":
+        if num_gpus is not None and num_gpus < 1:
+            raise ValueError("num_gpus must be at least 1 or None")
+        num_cuda_devices = torch.cuda.device_count()
+        if num_cuda_devices < 1:
+            raise Exception("CUDA devices are not available.")
+        if gpu_ids is None:
+            num_gpus = (
+                num_cuda_devices
+                if num_gpus is None
+                else min(num_gpus, num_cuda_devices)
+            )
+            gpu_ids = list(range(num_gpus))
+        else:
+            gpu_ids = list(set(list(range(num_cuda_devices))).intersection(gpu_ids))
+        if gpu_ids:
+            model = torch.nn.DataParallel(model_module, device_ids=gpu_ids)
     return model
 
 
@@ -156,9 +154,8 @@ def compute_training_steps(
         dataset_length = len(dataloader)
     except Exception:
         dataset_length = -1
-    if max_steps <= 0:
-        if dataset_length != -1 and num_epochs > 0:
-            max_steps = dataset_length // gradient_accumulation_steps * num_epochs
+    if max_steps <= 0 and dataset_length != -1 and num_epochs > 0:
+        max_steps = dataset_length // gradient_accumulation_steps * num_epochs
     if max_steps <= 0:
         raise Exception("Max steps cannot be determined.")
     return max_steps

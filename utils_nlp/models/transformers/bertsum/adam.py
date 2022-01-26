@@ -41,9 +41,9 @@ class Adam(Optimizer):
         weight_decay=0,
         amsgrad=False,
     ):
-        if not 0.0 <= lr:
+        if lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
-        if not 0.0 <= eps:
+        if eps < 0.0:
             raise ValueError("Invalid epsilon value: {}".format(eps))
         if not 0.0 <= betas[0] < 1.0:
             raise ValueError("Invalid beta parameter at index 0: {}".format(betas[0]))
@@ -65,10 +65,7 @@ class Adam(Optimizer):
             closure (callable, optional): A closure that reevaluates the model
                 and returns the loss.
         """
-        loss = None
-        if closure is not None:
-            loss = closure()
-
+        loss = closure() if closure is not None else None
         for group in self.param_groups:
             for p in group["params"]:
                 if p.grad is None:

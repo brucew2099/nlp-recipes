@@ -209,15 +209,14 @@ def evaluate(
             # Let the training end.
             break_flag = 1
             break
-    if break_flag == 1:
-        logging.info("##### Training stopped at ##### %f" % min_val_loss)
-        logging.info(
-            "##### Training Time ##### %f seconds"
-            % (time.time() - starting_time)
-        )
-        return True, min_val_loss_epoch, min_val_loss, model_state
-    else:
+    if break_flag != 1:
         return False, min_val_loss_epoch, min_val_loss, model_state
+    logging.info("##### Training stopped at ##### %f" % min_val_loss)
+    logging.info(
+        "##### Training Time ##### %f seconds"
+        % (time.time() - starting_time)
+    )
+    return True, min_val_loss_epoch, min_val_loss, model_state
 
 
 def evaluate_nli(nli_iterator, model, batch_size, n_gpus):

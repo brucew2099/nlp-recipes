@@ -140,11 +140,23 @@ class XLNetSequenceClassifier:
         no_decay = ["bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
             {
-                "params": [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+                "params": [
+                    p
+                    for n, p in param_optimizer
+                    if all(nd not in n for nd in no_decay)
+                ],
                 "weight_decay": self.weight_decay,
             },
-            {"params": [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
+            {
+                "params": [
+                    p
+                    for n, p in param_optimizer
+                    if any(nd in n for nd in no_decay)
+                ],
+                "weight_decay": 0.0,
+            },
         ]
+
 
         val_sampler = RandomSampler(val_dataset)
 
@@ -233,32 +245,31 @@ class XLNetSequenceClassifier:
                     mlflow.log_metric("validation loss", val_loss / len(val_dataset), step=global_step)
                     self.model.train()
 
-                if verbose:
-                    if i % ((num_batches // 10) + 1) == 0:
-                        if val_loss > 0:
-                            print(
-                                "epoch:{}/{}; batch:{}->{}/{}; average training loss:{:.6f};\
+                if verbose and i % ((num_batches // 10) + 1) == 0:
+                    if val_loss > 0:
+                        print(
+                            "epoch:{}/{}; batch:{}->{}/{}; average training loss:{:.6f};\
                                  average val loss:{:.6f}".format(
-                                    epoch + 1,
-                                    self.num_epochs,
-                                    i + 1,
-                                    min(i + 1 + num_batches // 10, num_batches),
-                                    num_batches,
-                                    tr_loss / (i + 1),
-                                    val_loss / (j + 1),
-                                )
+                                epoch + 1,
+                                self.num_epochs,
+                                i + 1,
+                                min(i + 1 + num_batches // 10, num_batches),
+                                num_batches,
+                                tr_loss / (i + 1),
+                                val_loss / (j + 1),
                             )
-                        else:
-                            print(
-                                "epoch:{}/{}; batch:{}->{}/{}; average train loss:{:.6f}".format(
-                                    epoch + 1,
-                                    self.num_epochs,
-                                    i + 1,
-                                    min(i + 1 + num_batches // 10, num_batches),
-                                    num_batches,
-                                    tr_loss / (i + 1),
-                                )
+                        )
+                    else:
+                        print(
+                            "epoch:{}/{}; batch:{}->{}/{}; average train loss:{:.6f}".format(
+                                epoch + 1,
+                                self.num_epochs,
+                                i + 1,
+                                min(i + 1 + num_batches // 10, num_batches),
+                                num_batches,
+                                tr_loss / (i + 1),
                             )
+                        )
         checkpoint_dir = os.path.join(os.getcwd(), "checkpoints")
         if not os.path.isdir(checkpoint_dir):
             os.makedirs(checkpoint_dir)

@@ -175,9 +175,7 @@ def main():
     print("data_dir is {}".format(args.data_dir))
     print("cache_dir is {}".format(args.cache_dir))
 
-    TOP_N = -1
-    if args.quick_run.lower() == "false":
-        TOP_N = 10
+    TOP_N = 10 if args.quick_run.lower() == "false" else -1
     train_dataset, test_dataset = CNNDMSummarizationDataset(
         top_n=TOP_N, local_cache_path=args.data_dir, prepare_extractive=False
     )

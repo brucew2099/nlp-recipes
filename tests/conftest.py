@@ -27,7 +27,7 @@ from azureml.core.webservice import Webservice
 @pytest.fixture(scope="module")
 def scripts():
     folder_notebooks = path_notebooks()
-    paths = {
+    return {
         "ddp_bertsumext": os.path.join(
             folder_notebooks,
             "text_summarization",
@@ -40,15 +40,12 @@ def scripts():
         ),
     }
 
-    return paths
-
 
 @pytest.fixture(scope="module")
 def notebooks():
     folder_notebooks = path_notebooks()
 
-    # Path for the notebooks
-    paths = {
+    return {
         "embedding_trainer": os.path.join(
             folder_notebooks, "embeddings", "embedding_trainer.ipynb"
         ),
@@ -62,10 +59,14 @@ def notebooks():
             folder_notebooks, "sentence_similarity", "gensen_local.ipynb"
         ),
         "gensen_aml_deep_dive": os.path.join(
-            folder_notebooks, "sentence_similarity", "gensen_aml_deep_dive.ipynb"
+            folder_notebooks,
+            "sentence_similarity",
+            "gensen_aml_deep_dive.ipynb",
         ),
         "automl_local_deployment_aci": os.path.join(
-            folder_notebooks, "sentence_similarity", "automl_local_deployment_aci.ipynb"
+            folder_notebooks,
+            "sentence_similarity",
+            "automl_local_deployment_aci.ipynb",
         ),
         "automl_with_pipelines_deployment_aks": os.path.join(
             folder_notebooks,
@@ -94,16 +95,22 @@ def notebooks():
             "question_answering_system_bidaf_quickstart.ipynb",
         ),
         "entailment_multinli_transformers": os.path.join(
-            folder_notebooks, "entailment", "entailment_multinli_transformers.ipynb"
+            folder_notebooks,
+            "entailment",
+            "entailment_multinli_transformers.ipynb",
         ),
         "entailment_xnli_bert_azureml": os.path.join(
-            folder_notebooks, "entailment", "entailment_xnli_bert_azureml.ipynb"
+            folder_notebooks,
+            "entailment",
+            "entailment_xnli_bert_azureml.ipynb",
         ),
         "tc_bert_azureml": os.path.join(
             folder_notebooks, "text_classification", "tc_bert_azureml.ipynb"
         ),
         "tc_mnli_transformers": os.path.join(
-            folder_notebooks, "text_classification", "tc_mnli_transformers.ipynb"
+            folder_notebooks,
+            "text_classification",
+            "tc_mnli_transformers.ipynb",
         ),
         "tc_multi_languages_transformers": os.path.join(
             folder_notebooks,
@@ -116,7 +123,9 @@ def notebooks():
             "ner_wikigold_transformer.ipynb",
         ),
         "deep_and_unified_understanding": os.path.join(
-            folder_notebooks, "model_explainability", "interpret_dnn_layers.ipynb"
+            folder_notebooks,
+            "model_explainability",
+            "interpret_dnn_layers.ipynb",
         ),
         "extractive_summarization_cnndm_transformer": os.path.join(
             folder_notebooks,
@@ -139,7 +148,6 @@ def notebooks():
             "abstractive_summarization_bertsumabs_cnndm.ipynb",
         ),
     }
-    return paths
 
 
 @pytest.fixture

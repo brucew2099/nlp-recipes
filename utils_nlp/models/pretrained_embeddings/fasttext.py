@@ -24,12 +24,11 @@ def _extract_fasttext_vectors(zip_path, dest_path="."):
         str: Returns the absolute path to the extracted folder.
     """
 
-    if os.path.exists(zip_path):
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(path=dest_path)
-    else:
+    if not os.path.exists(zip_path):
         raise Exception("Zipped file not found!")
 
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(path=dest_path)
     os.remove(zip_path)
     return dest_path
 
@@ -95,5 +94,4 @@ def load_pretrained_vectors(dest_path, file_name="wiki.simple.bin"):
     """
 
     file_path = _maybe_download_and_extract(dest_path, file_name)
-    model = load_facebook_model(file_path)
-    return model
+    return load_facebook_model(file_path)

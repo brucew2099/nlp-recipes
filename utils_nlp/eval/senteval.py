@@ -50,10 +50,7 @@ class SentEvalConfig:
 
         if any(t in classifying_tasks for t in self.transfer_tasks):
             try:
-                a = "classifier" in self.senteval_params
-                if not a:
-                    raise ValueError("Include param['classifier'] to run task {}".format(t))
-                else:
+                if a := "classifier" in self.senteval_params:
                     b = (
                         set("nhid", "optim", "batch_size", "tenacity", "epoch_size")
                         in self.senteval_params["classifier"].keys()
@@ -63,5 +60,7 @@ class SentEvalConfig:
                             "Include nhid, optim, batch_size, tenacity, and epoch_size params to "
                             "run task {}".format(t)
                         )
+                else:
+                    raise ValueError("Include param['classifier'] to run task {}".format(t))
             except ValueError as ve:
                 print(ve)

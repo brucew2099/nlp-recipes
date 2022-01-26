@@ -43,9 +43,7 @@ def get_raw_scores(qa_ids, actuals, preds):
 
     def _get_tokens(s):
         """Normalizes text and returns white-space tokenized tokens. """
-        if not s:
-            return []
-        return _normalize_answer(s).split()
+        return [] if not s else _normalize_answer(s).split()
 
     def _compute_exact(a_gold, a_pred):
         """Compute the exact match between two sentences after normalization.
@@ -72,8 +70,7 @@ def get_raw_scores(qa_ids, actuals, preds):
             return 0
         precision = 1.0 * num_same / len(pred_toks)
         recall = 1.0 * num_same / len(gold_toks)
-        f1 = (2 * precision * recall) / (precision + recall)
-        return f1
+        return (2 * precision * recall) / (precision + recall)
 
     # Helper functions end
 
@@ -115,7 +112,7 @@ def find_best_thresh(preds, scores, na_probs, qid_to_has_ans, unanswerable_exist
         tuple: score after applying best threshold, best threshold, (score for answerable
             questions after applying best threshold, if unanswerable_exists=True)
     """
-    num_no_ans = sum(1 for k in qid_to_has_ans if not qid_to_has_ans[k])
+    num_no_ans = sum(not qid_to_has_ans[k] for k in qid_to_has_ans)
     # If na_prob > threshold, the question is considered as unanswerable by the prediction.
     # Initially, the threshold is 0. All questions are considered as unanswerable by the
     # predictions. So cur_score is the number of actual unanswerable questions (i.e. correctly
@@ -126,7 +123,7 @@ def find_best_thresh(preds, scores, na_probs, qid_to_has_ans, unanswerable_exist
 
     # Sorted in ascending order
     qid_list = sorted(na_probs, key=lambda k: na_probs[k])
-    for i, qid in enumerate(qid_list):
+    for qid in qid_list:
         # When using the cur_na_prob as threshold, all predictions with na_prob > na_prob_cur are
         # considered as unanswerable. Current question is considered answerable.
         if qid not in scores:
@@ -137,12 +134,7 @@ def find_best_thresh(preds, scores, na_probs, qid_to_has_ans, unanswerable_exist
             diff = scores[qid]
         else:
             # Current question doesn't have ground truth answer.
-            if preds[qid]:
-                # Prediction is not empty, incorrect. cur_score -= 1
-                diff = -1
-            else:
-                # Prediction is empty, correct, the original score 1 from num_no_ans is preserved.
-                diff = 0
+            diff = -1 if preds[qid] else 0
         cur_score += diff
         if cur_score > best_score:
             # When cur_score > best_score, the threshold can increase so that more questions are
@@ -159,18 +151,17 @@ def find_best_thresh(preds, scores, na_probs, qid_to_has_ans, unanswerable_exist
 
     if not unanswerable_exists:
         return 100.0 * best_score / len(scores), best_thresh
-    else:
-        has_ans_score, has_ans_cnt = 0, 0
-        for qid in qid_list:
-            if not qid_to_has_ans[qid]:
-                continue
-            has_ans_cnt += 1
+    has_ans_score, has_ans_cnt = 0, 0
+    for qid in qid_list:
+        if not qid_to_has_ans[qid]:
+            continue
+        has_ans_cnt += 1
 
-            if qid not in scores:
-                continue
-            has_ans_score += scores[qid]
+        if qid not in scores:
+            continue
+        has_ans_score += scores[qid]
 
-        return 100.0 * best_score / len(scores), best_thresh, 1.0 * has_ans_score / has_ans_cnt
+    return 100.0 * best_score / len(scores), best_thresh, 1.0 * has_ans_score / has_ans_cnt
 
 
 def find_all_best_thresh(
@@ -239,14 +230,12 @@ def evaluate_qa(
     def _apply_no_ans_threshold(scores, na_probs, qid_to_has_ans, na_prob_thresh):
         """Update the input scores by applying unanswerable probability threshold."""
 
-        new_scores = {}
-        for qid, s in scores.items():
-            pred_na = na_probs[qid] > na_prob_thresh
-            if pred_na:
-                new_scores[qid] = float(not qid_to_has_ans[qid])
-            else:
-                new_scores[qid] = s
-        return new_scores
+        return {
+            qid: float(not qid_to_has_ans[qid])
+            if (pred_na := na_probs[qid] > na_prob_thresh)
+            else s
+            for qid, s in scores.items()
+        }
 
     def _make_eval_dict(exact_scores, f1_scores, qid_list=None):
         """Create a dictionary of evaluation results."""

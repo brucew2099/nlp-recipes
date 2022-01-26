@@ -77,7 +77,6 @@ class SquadExample(object):
         s += ", doc_tokens: [%s]" % (" ".join(self.doc_tokens))
         if self.start_position:
             s += ", start_position: %d" % (self.start_position)
-        if self.start_position:
             s += ", end_position: %d" % (self.end_position)
         return s
 
@@ -116,9 +115,7 @@ def read_squad_examples(input_file, is_training):
         input_data = json.load(reader)["data"]
 
     def is_whitespace(c):
-        if c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F:
-            return True
-        return False
+        return c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F
 
     examples = []
     for entry in input_data:
@@ -190,7 +187,7 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
         query_tokens = tokenizer.tokenize(example.question_text)
 
         if len(query_tokens) > max_query_length:
-            query_tokens = query_tokens[0:max_query_length]
+            query_tokens = query_tokens[:max_query_length]
 
         tok_to_orig_index = []
         orig_to_tok_index = []
@@ -234,18 +231,16 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
             start_offset += min(length, doc_stride)
 
         for (doc_span_index, doc_span) in enumerate(doc_spans):
-            tokens = []
-            token_to_orig_map = {}
-            token_is_max_context = {}
-            segment_ids = []
-            tokens.append("[CLS]")
-            segment_ids.append(0)
+            tokens = ['[CLS]']
+            segment_ids = [0]
             for token in query_tokens:
                 tokens.append(token)
                 segment_ids.append(0)
             tokens.append("[SEP]")
             segment_ids.append(0)
 
+            token_to_orig_map = {}
+            token_is_max_context = {}
             for i in range(doc_span.length):
                 split_token_index = doc_span.start + i
                 token_to_orig_map[len(tokens)] = tok_to_orig_index[split_token_index]
@@ -421,10 +416,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
     for feature in all_features:
         example_index_to_features[feature.example_index].append(feature)
 
-    unique_id_to_result = {}
-    for result in all_results:
-        unique_id_to_result[result.unique_id] = result
-
+    unique_id_to_result = {result.unique_id: result for result in all_results}
     _PrelimPrediction = collections.namedtuple(  # pylint: disable=invalid-name
         "PrelimPrediction",
         ["feature_index", "start_index", "end_index", "start_logit", "end_logit"])
@@ -517,10 +509,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
 
         assert len(nbest) >= 1
 
-        total_scores = []
-        for entry in nbest:
-            total_scores.append(entry.start_logit + entry.end_logit)
-
+        total_scores = [entry.start_logit + entry.end_logit for entry in nbest]
         probs = _compute_softmax(total_scores)
 
         nbest_json = []
@@ -669,10 +658,7 @@ def _compute_softmax(scores):
         exp_scores.append(x)
         total_sum += x
 
-    probs = []
-    for score in exp_scores:
-        probs.append(score / total_sum)
-    return probs
+    return [score / total_sum for score in exp_scores]
 
 
 def main():

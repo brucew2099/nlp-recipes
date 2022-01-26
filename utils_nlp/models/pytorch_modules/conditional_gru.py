@@ -63,9 +63,7 @@ class ConditionalGRU(nn.Module):
             resetgate = F.sigmoid(i_r + h_r + p_r)
             inputgate = F.sigmoid(i_i + h_i + p_i)
             newgate = F.tanh(i_n + resetgate * h_n + p_n)
-            hy = newgate + inputgate * (hidden - newgate)
-
-            return hy
+            return newgate + inputgate * (hidden - newgate)
 
         input = input.transpose(0, 1)
 

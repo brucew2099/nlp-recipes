@@ -142,9 +142,11 @@ class RougeExt(Rouge):
         self.metrics = set(self.metrics)
 
         self.limit_length = limit_length
-        if self.limit_length:
-            if length_limit_type not in RougeExt.AVAILABLE_LENGTH_LIMIT_TYPES:
-                raise ValueError("Unknown length_limit_type '{}'".format(length_limit_type))
+        if (
+            self.limit_length
+            and length_limit_type not in RougeExt.AVAILABLE_LENGTH_LIMIT_TYPES
+        ):
+            raise ValueError("Unknown length_limit_type '{}'".format(length_limit_type))
 
         self.length_limit = length_limit
         if self.length_limit == 0:
@@ -313,9 +315,10 @@ class RougeExt(Rouge):
 
         # Gets the overlapping ngrams between evaluated and reference
         overlapping_ngrams = set(evaluated_ngrams.keys()).intersection(set(reference_ngrams.keys()))
-        overlapping_count = 0
-        for ngram in overlapping_ngrams:
-            overlapping_count += min(evaluated_ngrams[ngram], reference_ngrams[ngram])
+        overlapping_count = sum(
+            min(evaluated_ngrams[ngram], reference_ngrams[ngram])
+            for ngram in overlapping_ngrams
+        )
 
         return evaluated_count, reference_count, overlapping_count
 

@@ -62,8 +62,9 @@ def get_all_notebook_files():
     if not os.path.exists(examples_path):
         raise ValueError("Cannot find examples file path: {}".format(examples_path))
 
-    files = [f for f in glob.glob(os.path.join(examples_path, "*/*.ipynb"), recursive=True)]
-    return files
+    return list(
+        glob.glob(os.path.join(examples_path, "*/*.ipynb"), recursive=True)
+    )
 
 
 def main():

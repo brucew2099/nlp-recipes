@@ -130,6 +130,4 @@ def compute_rouge_python(cand, ref, is_input_files=False, language="en"):
             language=language,
         )
 
-    scores = evaluator.get_scores(candidates, [[it] for it in references])
-
-    return scores
+    return evaluator.get_scores(candidates, [[it] for it in references])

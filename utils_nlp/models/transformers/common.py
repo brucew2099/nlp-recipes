@@ -58,7 +58,7 @@ class Transformer:
                 "params": [
                     p
                     for n, p in model.named_parameters()
-                    if not any(nd in n for nd in no_decay)
+                    if all(nd not in n for nd in no_decay)
                 ],
                 "weight_decay": weight_decay,
             },
@@ -71,19 +71,18 @@ class Transformer:
                 "weight_decay": 0.0,
             },
         ]
-        optimizer = AdamW(
+
+        return AdamW(
             optimizer_grouped_parameters, lr=learning_rate, eps=adam_epsilon
         )
-        return optimizer
 
     @staticmethod
     def get_default_scheduler(optimizer, warmup_steps, num_training_steps):
-        scheduler = get_linear_schedule_with_warmup(
+        return get_linear_schedule_with_warmup(
             optimizer,
             num_warmup_steps=warmup_steps,
             num_training_steps=num_training_steps,
         )
-        return scheduler
 
     def prepare_model_and_optimizer(
         self,
@@ -194,13 +193,7 @@ class Transformer:
                 inputs = get_inputs(batch, device, self.model_name)
                 outputs = self.model(**inputs)
 
-                if isinstance(outputs, tuple):
-                    loss = outputs[0]
-                else:
-                    # Accomondate models based on older versions of Transformers,
-                    # e.g. UniLM
-                    loss = outputs
-
+                loss = outputs[0] if isinstance(outputs, tuple) else outputs
                 if num_gpus > 1:
                     loss = loss.mean()
 

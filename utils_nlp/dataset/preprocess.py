@@ -39,9 +39,8 @@ def to_lowercase(df, column_names=[]):
     """
     if not column_names:
         return to_lowercase_all(df)
-    else:
-        df[column_names] = df[column_names].applymap(lambda s: s.lower() if type(s) == str else s)
-        return df
+    df[column_names] = df[column_names].applymap(lambda s: s.lower() if type(s) == str else s)
+    return df
 
 
 def to_spacy_tokens(
@@ -67,8 +66,7 @@ def to_spacy_tokens(
     nlp_df = text_df.applymap(lambda x: nlp(x))
     tok_df = nlp_df.applymap(lambda doc: [token.text for token in doc])
     tok_df.columns = token_cols
-    tokenized = pd.concat([df, tok_df], axis=1)
-    return tokenized
+    return pd.concat([df, tok_df], axis=1)
 
 
 def rm_spacy_stopwords(
@@ -125,8 +123,7 @@ def to_nltk_tokens(
     text_df = df[sentence_cols]
     tok_df = text_df.applymap(lambda sentence: nltk.word_tokenize(sentence))
     tok_df.columns = token_cols
-    tokenized = pd.concat([df, tok_df], axis=1)
-    return tokenized
+    return pd.concat([df, tok_df], axis=1)
 
 
 def rm_nltk_stopwords(

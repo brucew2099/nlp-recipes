@@ -73,8 +73,10 @@ def load_pandas_df(local_cache_path=".", file_split="dev", language="zh"):
         line_list = [line for line in line_list if line[0] == language]
 
     valid_lines = [
-        True if line[sentence_1_index] and line[sentence_2_index] else False for line in line_list
+        bool(line[sentence_1_index] and line[sentence_2_index])
+        for line in line_list
     ]
+
     total_line_count = len(line_list)
     line_list = [line for line, valid in zip(line_list, valid_lines) if valid]
     valid_line_count = len(line_list)
@@ -93,6 +95,4 @@ def load_pandas_df(local_cache_path=".", file_split="dev", language="zh"):
         for line in line_list
     ]
 
-    df = pd.DataFrame({"text": text_list, "label": label_list})
-
-    return df
+    return pd.DataFrame({"text": text_list, "label": label_list})
